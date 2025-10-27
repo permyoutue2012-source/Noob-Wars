@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -17,6 +18,8 @@ mainContainer.Size = UDim2.new(0, 500, 0, 600)
 mainContainer.Position = UDim2.new(0.5, -250, 0.5, -300)
 mainContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 mainContainer.BorderSizePixel = 0
+mainContainer.Active = true
+mainContainer.Draggable = true
 mainContainer.Parent = screenGui
 
 local containerCorner = Instance.new("UICorner")
@@ -154,7 +157,7 @@ for _, tabName in ipairs(tabs) do
     createTabContent(tabName)
 end
 
--- List of all countries/territories (removed South Korea, North Korea, Greenland)
+-- List of all countries/territories
 local territories = {
     "Norway/France", "United Kingdom", "Golden Territory (USA)", "Diamond Territory (24)",
     "No", "Yes", "Germany", "Italy", "Spain", "Russia", "China", "Japan", "India",
@@ -166,19 +169,19 @@ local territories = {
 
 -- Updated defender types and prices with correct information
 local defenders = {
-    {Name = "Warrior", Price = "$10"},
-    {Name = "Archer", Price = "$100"}, 
+    {Name = "Warrior", Price = "$375"},
+    {Name = "Archer", Price = "$2.00K"}, 
     {Name = "Gunman", Price = "$9.00K"},
     {Name = "Soldier", Price = "$15.0K"},
     {Name = "Big Gun", Price = "$27.5K"},
     {Name = "Rocket", Price = "$60.0K"},
-    {Name = "Riot", Price = "$200K"},
-    {Name = "Sniper", Price = "$400K"},
-    {Name = "Minigun", Price = "$750K"},
-    {Name = "Car", Price = "$1.50M"},
-    {Name = "Tank", Price = "$2.50M"},
-    {Name = "Biplane", Price = "$4.00M"},
-    {Name = "Hell", Price = "$???"}
+    {Name = "Riot", Price = "$115K"},
+    {Name = "Sniper", Price = "$200K"},
+    {Name = "Minigun", Price = "$400K"},
+    {Name = "Car", Price = "$750M"},
+    {Name = "Tank", Price = "$1.50M"},
+    {Name = "Biplane", Price = "$2.50M"},
+    {Name = "Hell", Price = "$4.00M"}
 }
 
 -- Search functionality
@@ -252,7 +255,7 @@ local function upgradeTerritory(territoryName)
     return true
 end
 
--- Function to buy defender (FIXED: Gunman instead of Gunnan)
+-- Function to buy defender
 local function buyDefender(territoryName, defenderType)
     local args = {
         [1] = "buyDefender",
@@ -286,7 +289,7 @@ local function createTerritoryButton(parent, territoryName, buttonType)
     buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
     buttonLayout.Padding = UDim.new(0, 5)
     buttonLayout.Parent = buttonFrame
-    
+
     -- Checkbox for auto attack selection
     local checkbox = Instance.new("TextButton")
     checkbox.Name = "Checkbox"
@@ -295,12 +298,14 @@ local function createTerritoryButton(parent, territoryName, buttonType)
     checkbox.BorderSizePixel = 0
     checkbox.Text = ""
     checkbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    checkbox.TextScaled = true
+    checkbox.Font = Enum.Font.GothamBold
     checkbox.Parent = buttonFrame
     
     local checkboxCorner = Instance.new("UICorner")
     checkboxCorner.CornerRadius = UDim.new(0, 4)
     checkboxCorner.Parent = checkbox
-    
+
     -- Territory button
     local button = Instance.new("TextButton")
     button.Name = "TerritoryButton"
@@ -348,6 +353,7 @@ local function createTerritoryButton(parent, territoryName, buttonType)
         end)
     else
         checkbox.Visible = false
+        button.Size = UDim2.new(1, 0, 0, 25)
     end
     
     return buttonFrame
@@ -365,73 +371,87 @@ local function createDefenderButton(parent, defenderInfo, territoryName)
     local buttonCorner = Instance.new("UICorner")
     buttonCorner.CornerRadius = UDim.new(0, 6)
     buttonCorner.Parent = buttonFrame
-    
+
+    local buttonLayout = Instance.new("UIListLayout")
+    buttonLayout.FillDirection = Enum.FillDirection.Horizontal
+    buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    buttonLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    buttonLayout.Padding = UDim.new(0, 5)
+    buttonLayout.Parent = buttonFrame
+
+    -- Defender info
+    local infoFrame = Instance.new("Frame")
+    infoFrame.Name = "InfoFrame"
+    infoFrame.Size = UDim2.new(0.6, 0, 1, 0)
+    infoFrame.BackgroundTransparency = 1
+    infoFrame.Parent = buttonFrame
+
+    local infoLayout = Instance.new("UIListLayout")
+    infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    infoLayout.Parent = infoFrame
+
     local defenderName = Instance.new("TextLabel")
     defenderName.Name = "DefenderName"
-    defenderName.Size = UDim2.new(0.6, 0, 0.5, 0)
-    defenderName.Position = UDim2.new(0, 10, 0, 5)
+    defenderName.Size = UDim2.new(1, 0, 0.5, 0)
     defenderName.BackgroundTransparency = 1
     defenderName.Text = defenderInfo.Name
     defenderName.TextColor3 = Color3.fromRGB(255, 255, 255)
     defenderName.TextScaled = true
     defenderName.Font = Enum.Font.GothamBold
     defenderName.TextXAlignment = Enum.TextXAlignment.Left
-    defenderName.Parent = buttonFrame
+    defenderName.Parent = infoFrame
     
     local defenderPrice = Instance.new("TextLabel")
     defenderPrice.Name = "DefenderPrice"
-    defenderPrice.Size = UDim2.new(0.6, 0, 0.5, 0)
-    defenderPrice.Position = UDim2.new(0, 10, 0.5, 0)
+    defenderPrice.Size = UDim2.new(1, 0, 0.5, 0)
     defenderPrice.BackgroundTransparency = 1
     defenderPrice.Text = defenderInfo.Price
     defenderPrice.TextColor3 = Color3.fromRGB(200, 200, 200)
     defenderPrice.TextScaled = true
     defenderPrice.Font = Enum.Font.Gotham
     defenderPrice.TextXAlignment = Enum.TextXAlignment.Left
-    defenderPrice.Parent = buttonFrame
+    defenderPrice.Parent = infoFrame
+
+    -- Buttons frame
+    local buttonsFrame = Instance.new("Frame")
+    buttonsFrame.Name = "ButtonsFrame"
+    buttonsFrame.Size = UDim2.new(0.4, 0, 1, 0)
+    buttonsFrame.BackgroundTransparency = 1
+    buttonsFrame.Parent = buttonFrame
+
+    local buttonsLayout = Instance.new("UIListLayout")
+    buttonsLayout.FillDirection = Enum.FillDirection.Horizontal
+    buttonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    buttonsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    buttonsLayout.Padding = UDim.new(0, 5)
+    buttonsLayout.Parent = buttonsFrame
     
     local buy1 = Instance.new("TextButton")
     buy1.Name = "Buy1"
-    buy1.Size = UDim2.new(0.35, 0, 0.8, 0)
-    buy1.Position = UDim2.new(0.65, 0, 0.1, 0)
+    buy1.Size = UDim2.new(0.45, 0, 0.7, 0)
     buy1.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
     buy1.BorderSizePixel = 0
     buy1.Text = "BUY 1"
     buy1.TextColor3 = Color3.fromRGB(255, 255, 255)
     buy1.TextScaled = true
     buy1.Font = Enum.Font.GothamBold
-    buy1.Parent = buttonFrame
+    buy1.Parent = buttonsFrame
     
     local buy10 = Instance.new("TextButton")
     buy10.Name = "Buy10"
-    buy10.Size = UDim2.new(0.35, 0, 0.8, 0)
-    buy10.Position = UDim2.new(0.65, 0, 0.1, 0)
+    buy10.Size = UDim2.new(0.45, 0, 0.7, 0)
     buy10.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
     buy10.BorderSizePixel = 0
     buy10.Text = "BUY 10"
     buy10.TextColor3 = Color3.fromRGB(255, 255, 255)
     buy10.TextScaled = true
     buy10.Font = Enum.Font.GothamBold
-    buy10.Visible = false
-    buy10.Parent = buttonFrame
+    buy10.Parent = buttonsFrame
     
     local buyCorner = Instance.new("UICorner")
     buyCorner.CornerRadius = UDim.new(0, 4)
     buyCorner.Parent = buy1
     buyCorner:Clone().Parent = buy10
-    
-    -- Hover effects
-    buttonFrame.MouseEnter:Connect(function()
-        buttonFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        buy1.Visible = false
-        buy10.Visible = true
-    end)
-    
-    buttonFrame.MouseLeave:Connect(function()
-        buttonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        buy1.Visible = true
-        buy10.Visible = false
-    end)
     
     buy1.MouseButton1Click:Connect(function()
         buyDefender(territoryName, defenderInfo.Name)
@@ -440,6 +460,7 @@ local function createDefenderButton(parent, defenderInfo, territoryName)
     buy10.MouseButton1Click:Connect(function()
         for i = 1, 10 do
             buyDefender(territoryName, defenderInfo.Name)
+            wait(0.05) -- Small delay to prevent spamming
         end
     end)
     
@@ -691,7 +712,7 @@ end
 startAutoAttack.MouseButton1Click:Connect(startAutoAttack)
 stopAutoAttack.MouseButton1Click:Connect(stopAutoAttack)
 
--- Upgrade all functionality (FIXED: Actually upgrades all territories)
+-- Upgrade all functionality
 upgradeAllButton.MouseButton1Click:Connect(function()
     for _, territory in ipairs(territories) do
         upgradeTerritory(territory)
@@ -699,14 +720,14 @@ upgradeAllButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Search functionality (FIXED: Now actually works)
+-- Search functionality
 local function setupSearch(searchBox, parent)
     searchBox:GetPropertyChangedSignal("Text"):Connect(function()
         local searchText = searchBox.Text:lower()
         for _, child in ipairs(parent:GetChildren()) do
             if child:IsA("Frame") and child:FindFirstChild("TerritoryButton") then
                 local territoryName = child.TerritoryButton.Text:lower()
-                if searchText == "" or territoryName:find(searchText) then
+                if searchText == "" or territoryName:find(searchText, 1, true) then
                     child.Visible = true
                 else
                     child.Visible = false
@@ -716,9 +737,23 @@ local function setupSearch(searchBox, parent)
     end)
 end
 
+-- Setup search for defenders tab
+defendersSearch:GetPropertyChangedSignal("Text"):Connect(function()
+    local searchText = defendersSearch.Text:lower()
+    for _, child in ipairs(territoriesScroll:GetChildren()) do
+        if child:IsA("TextButton") then
+            local territoryName = child.Text:lower()
+            if searchText == "" or territoryName:find(searchText, 1, true) then
+                child.Visible = true
+            else
+                child.Visible = false
+            end
+        end
+    end
+end)
+
 setupSearch(attackSearch, attackTab)
 setupSearch(upgradeSearch, upgradeTab)
-setupSearch(defendersSearch, territoriesScroll)
 
 -- Cleanup
 player.AncestryChanged:Connect(function()
