@@ -1,1 +1,728 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create the main GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "NoobWarGUI"
+screenGui.Parent = playerGui
+
+-- Main container
+local mainContainer = Instance.new("Frame")
+mainContainer.Name = "MainContainer"
+mainContainer.Size = UDim2.new(0, 500, 0, 600)
+mainContainer.Position = UDim2.new(0.5, -250, 0.5, -300)
+mainContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainContainer.BorderSizePixel = 0
+mainContainer.Parent = screenGui
+
+local containerCorner = Instance.new("UICorner")
+containerCorner.CornerRadius = UDim.new(0, 8)
+containerCorner.Parent = mainContainer
+
+local containerShadow = Instance.new("UIStroke")
+containerShadow.Color = Color3.fromRGB(50, 50, 50)
+containerShadow.Thickness = 2
+containerShadow.Parent = mainContainer
+
+-- Title bar
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainContainer
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8, 0, 0)
+titleCorner.Parent = titleBar
+
+local titleText = Instance.new("TextLabel")
+titleText.Name = "Title"
+titleText.Size = UDim2.new(1, -20, 1, 0)
+titleText.Position = UDim2.new(0, 10, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "NOOB WAR"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextScaled = true
+titleText.Font = Enum.Font.GothamBold
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Parent = titleBar
+
+-- Tabs on the side
+local sideTabs = Instance.new("Frame")
+sideTabs.Name = "SideTabs"
+sideTabs.Size = UDim2.new(0, 120, 1, -40)
+sideTabs.Position = UDim2.new(0, 0, 0, 40)
+sideTabs.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+sideTabs.BorderSizePixel = 0
+sideTabs.Parent = mainContainer
+
+local tabsLayout = Instance.new("UIListLayout")
+tabsLayout.Padding = UDim.new(0, 0)
+tabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabsLayout.Parent = sideTabs
+
+-- Content area
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, -120, 1, -40)
+contentFrame.Position = UDim2.new(0, 120, 0, 40)
+contentFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+contentFrame.BorderSizePixel = 0
+contentFrame.Parent = mainContainer
+
+-- Tab buttons
+local tabs = {
+    "Attack",
+    "Defenders", 
+    "Upgrade"
+}
+
+local currentTab = "Attack"
+local tabFrames = {}
+
+-- Function to create tab button
+local function createTabButton(tabName)
+    local tabButton = Instance.new("TextButton")
+    tabButton.Name = tabName .. "Tab"
+    tabButton.Size = UDim2.new(1, 0, 0, 50)
+    tabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    tabButton.BorderSizePixel = 0
+    tabButton.Text = tabName
+    tabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    tabButton.TextScaled = true
+    tabButton.Font = Enum.Font.GothamBold
+    tabButton.Parent = sideTabs
+    
+    local tabCorner = Instance.new("UICorner")
+    tabCorner.CornerRadius = UDim.new(0, 0)
+    tabCorner.Parent = tabButton
+    
+    tabButton.MouseButton1Click:Connect(function()
+        currentTab = tabName
+        for name, frame in pairs(tabFrames) do
+            frame.Visible = (name == tabName)
+        end
+        -- Update tab colors
+        for _, child in ipairs(sideTabs:GetChildren()) do
+            if child:IsA("TextButton") then
+                if child.Text == tabName then
+                    child.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    child.TextColor3 = Color3.fromRGB(255, 255, 255)
+                else
+                    child.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                    child.TextColor3 = Color3.fromRGB(200, 200, 200)
+                end
+            end
+        end
+    end)
+    
+    return tabButton
+end
+
+-- Function to create tab content
+local function createTabContent(tabName)
+    local tabFrame = Instance.new("ScrollingFrame")
+    tabFrame.Name = tabName .. "Content"
+    tabFrame.Size = UDim2.new(1, 0, 1, 0)
+    tabFrame.Position = UDim2.new(0, 0, 0, 0)
+    tabFrame.BackgroundTransparency = 1
+    tabFrame.BorderSizePixel = 0
+    tabFrame.ScrollBarThickness = 8
+    tabFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
+    tabFrame.Visible = (tabName == "Attack")
+    tabFrame.Parent = contentFrame
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = tabFrame
+    
+    tabFrames[tabName] = tabFrame
+    return tabFrame
+end
+
+-- Create all tabs
+for _, tabName in ipairs(tabs) do
+    createTabButton(tabName)
+    createTabContent(tabName)
+end
+
+-- List of all countries/territories (removed South Korea, North Korea, Greenland)
+local territories = {
+    "Norway/France", "United Kingdom", "Golden Territory (USA)", "Diamond Territory (24)",
+    "No", "Yes", "Germany", "Italy", "Spain", "Russia", "China", "Japan", "India",
+    "Brazil", "Canada", "Australia", "Mexico", "Argentina", "Egypt", "South Africa",
+    "Sweden", "Finland", "Poland", "Turkey", "Saudi Arabia", "Indonesia", "Vietnam",
+    "Thailand", "Philippines", "Malaysia", "Pakistan", "Bangladesh", "Nigeria", "Kenya", 
+    "Ethiopia", "Morocco", "Algeria", "Ukraine"
+}
+
+-- Updated defender types and prices with correct information
+local defenders = {
+    {Name = "Warrior", Price = "$10"},
+    {Name = "Archer", Price = "$100"}, 
+    {Name = "Gunman", Price = "$9.00K"},
+    {Name = "Soldier", Price = "$15.0K"},
+    {Name = "Big Gun", Price = "$27.5K"},
+    {Name = "Rocket", Price = "$60.0K"},
+    {Name = "Riot", Price = "$200K"},
+    {Name = "Sniper", Price = "$400K"},
+    {Name = "Minigun", Price = "$750K"},
+    {Name = "Car", Price = "$1.50M"},
+    {Name = "Tank", Price = "$2.50M"},
+    {Name = "Biplane", Price = "$4.00M"},
+    {Name = "Hell", Price = "$???"}
+}
+
+-- Search functionality
+local function createSearchBox(parent, placeholder, layoutOrder)
+    local searchFrame = Instance.new("Frame")
+    searchFrame.Name = "SearchFrame"
+    searchFrame.Size = UDim2.new(1, -20, 0, 40)
+    searchFrame.LayoutOrder = layoutOrder or 1
+    searchFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    searchFrame.BorderSizePixel = 0
+    searchFrame.Parent = parent
+    
+    local searchCorner = Instance.new("UICorner")
+    searchCorner.CornerRadius = UDim.new(0, 6)
+    searchCorner.Parent = searchFrame
+    
+    local searchBox = Instance.new("TextBox")
+    searchBox.Name = "SearchBox"
+    searchBox.Size = UDim2.new(1, -20, 0, 30)
+    searchBox.Position = UDim2.new(0, 10, 0, 5)
+    searchBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    searchBox.BorderSizePixel = 0
+    searchBox.Text = ""
+    searchBox.PlaceholderText = placeholder
+    searchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    searchBox.TextScaled = true
+    searchBox.Font = Enum.Font.Gotham
+    searchBox.Parent = searchFrame
+    
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 4)
+    boxCorner.Parent = searchBox
+    
+    return searchBox
+end
+
+-- Function to perform attack
+local function attackTerritory(territoryName)
+    local args = {
+        [1] = "Attack",
+        [2] = workspace:WaitForChild("Territories", 9e9):WaitForChild(territoryName, 9e9)
+    }
+    
+    local success, errorMessage = pcall(function()
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent", 9e9):FireServer(unpack(args))
+    end)
+    
+    if not success then
+        warn("Failed to attack " .. territoryName .. ": " .. tostring(errorMessage))
+        return false
+    end
+    return true
+end
+
+-- Function to upgrade territory
+local function upgradeTerritory(territoryName)
+    local args = {
+        [1] = "Upgrade",
+        [2] = workspace:WaitForChild("Territories", 9e9):WaitForChild(territoryName, 9e9)
+    }
+    
+    local success, errorMessage = pcall(function()
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent", 9e9):FireServer(unpack(args))
+    end)
+    
+    if not success then
+        warn("Failed to upgrade " .. territoryName .. ": " .. tostring(errorMessage))
+        return false
+    end
+    return true
+end
+
+-- Function to buy defender (FIXED: Gunman instead of Gunnan)
+local function buyDefender(territoryName, defenderType)
+    local args = {
+        [1] = "buyDefender",
+        [2] = {
+            [1] = workspace:WaitForChild("Territories", 9e9):WaitForChild(territoryName, 9e9),
+            [2] = defenderType
+        }
+    }
+    
+    local success, errorMessage = pcall(function()
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent", 9e9):FireServer(unpack(args))
+    end)
+    
+    if not success then
+        warn("Failed to buy " .. defenderType .. " for " .. territoryName .. ": " .. tostring(errorMessage))
+        return false
+    end
+    return true
+end
+
+-- Create territory buttons with checkboxes
+local function createTerritoryButton(parent, territoryName, buttonType)
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = territoryName
+    buttonFrame.Size = UDim2.new(1, -20, 0, 35)
+    buttonFrame.BackgroundTransparency = 1
+    buttonFrame.Parent = parent
+    
+    local buttonLayout = Instance.new("UIListLayout")
+    buttonLayout.FillDirection = Enum.FillDirection.Horizontal
+    buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    buttonLayout.Padding = UDim.new(0, 5)
+    buttonLayout.Parent = buttonFrame
+    
+    -- Checkbox for auto attack selection
+    local checkbox = Instance.new("TextButton")
+    checkbox.Name = "Checkbox"
+    checkbox.Size = UDim2.new(0, 25, 0, 25)
+    checkbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    checkbox.BorderSizePixel = 0
+    checkbox.Text = ""
+    checkbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    checkbox.Parent = buttonFrame
+    
+    local checkboxCorner = Instance.new("UICorner")
+    checkboxCorner.CornerRadius = UDim.new(0, 4)
+    checkboxCorner.Parent = checkbox
+    
+    -- Territory button
+    local button = Instance.new("TextButton")
+    button.Name = "TerritoryButton"
+    button.Size = UDim2.new(1, -35, 0, 25)
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BorderSizePixel = 0
+    button.Text = territoryName
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.Gotham
+    button.Parent = buttonFrame
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 4)
+    buttonCorner.Parent = button
+    
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end)
+    
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end)
+    
+    button.MouseButton1Click:Connect(function()
+        if buttonType == "Attack" then
+            attackTerritory(territoryName)
+        elseif buttonType == "Upgrade" then
+            upgradeTerritory(territoryName)
+        end
+    end)
+    
+    -- Checkbox functionality for auto attack
+    if buttonType == "Attack" then
+        checkbox.MouseButton1Click:Connect(function()
+            if selectedTerritories[territoryName] then
+                selectedTerritories[territoryName] = false
+                checkbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                checkbox.Text = ""
+            else
+                selectedTerritories[territoryName] = true
+                checkbox.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+                checkbox.Text = "✓"
+            end
+        end)
+    else
+        checkbox.Visible = false
+    end
+    
+    return buttonFrame
+end
+
+-- Create defender button
+local function createDefenderButton(parent, defenderInfo, territoryName)
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = defenderInfo.Name
+    buttonFrame.Size = UDim2.new(1, -20, 0, 50)
+    buttonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    buttonFrame.BorderSizePixel = 0
+    buttonFrame.Parent = parent
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = buttonFrame
+    
+    local defenderName = Instance.new("TextLabel")
+    defenderName.Name = "DefenderName"
+    defenderName.Size = UDim2.new(0.6, 0, 0.5, 0)
+    defenderName.Position = UDim2.new(0, 10, 0, 5)
+    defenderName.BackgroundTransparency = 1
+    defenderName.Text = defenderInfo.Name
+    defenderName.TextColor3 = Color3.fromRGB(255, 255, 255)
+    defenderName.TextScaled = true
+    defenderName.Font = Enum.Font.GothamBold
+    defenderName.TextXAlignment = Enum.TextXAlignment.Left
+    defenderName.Parent = buttonFrame
+    
+    local defenderPrice = Instance.new("TextLabel")
+    defenderPrice.Name = "DefenderPrice"
+    defenderPrice.Size = UDim2.new(0.6, 0, 0.5, 0)
+    defenderPrice.Position = UDim2.new(0, 10, 0.5, 0)
+    defenderPrice.BackgroundTransparency = 1
+    defenderPrice.Text = defenderInfo.Price
+    defenderPrice.TextColor3 = Color3.fromRGB(200, 200, 200)
+    defenderPrice.TextScaled = true
+    defenderPrice.Font = Enum.Font.Gotham
+    defenderPrice.TextXAlignment = Enum.TextXAlignment.Left
+    defenderPrice.Parent = buttonFrame
+    
+    local buy1 = Instance.new("TextButton")
+    buy1.Name = "Buy1"
+    buy1.Size = UDim2.new(0.35, 0, 0.8, 0)
+    buy1.Position = UDim2.new(0.65, 0, 0.1, 0)
+    buy1.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+    buy1.BorderSizePixel = 0
+    buy1.Text = "BUY 1"
+    buy1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    buy1.TextScaled = true
+    buy1.Font = Enum.Font.GothamBold
+    buy1.Parent = buttonFrame
+    
+    local buy10 = Instance.new("TextButton")
+    buy10.Name = "Buy10"
+    buy10.Size = UDim2.new(0.35, 0, 0.8, 0)
+    buy10.Position = UDim2.new(0.65, 0, 0.1, 0)
+    buy10.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+    buy10.BorderSizePixel = 0
+    buy10.Text = "BUY 10"
+    buy10.TextColor3 = Color3.fromRGB(255, 255, 255)
+    buy10.TextScaled = true
+    buy10.Font = Enum.Font.GothamBold
+    buy10.Visible = false
+    buy10.Parent = buttonFrame
+    
+    local buyCorner = Instance.new("UICorner")
+    buyCorner.CornerRadius = UDim.new(0, 4)
+    buyCorner.Parent = buy1
+    buyCorner:Clone().Parent = buy10
+    
+    -- Hover effects
+    buttonFrame.MouseEnter:Connect(function()
+        buttonFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        buy1.Visible = false
+        buy10.Visible = true
+    end)
+    
+    buttonFrame.MouseLeave:Connect(function()
+        buttonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        buy1.Visible = true
+        buy10.Visible = false
+    end)
+    
+    buy1.MouseButton1Click:Connect(function()
+        buyDefender(territoryName, defenderInfo.Name)
+    end)
+    
+    buy10.MouseButton1Click:Connect(function()
+        for i = 1, 10 do
+            buyDefender(territoryName, defenderInfo.Name)
+        end
+    end)
+    
+    return buttonFrame
+end
+
+-- Auto attack variables
+local autoAttackEnabled = false
+local selectedTerritories = {}
+local autoAttackConnection = nil
+
+-- Setup Attack Tab
+local attackTab = tabFrames["Attack"]
+attackTab.CanvasSize = UDim2.new(0, 0, 0, #territories * 45 + 150)
+
+local attackSearch = createSearchBox(attackTab, "Search territories...", 1)
+
+-- Auto attack section
+local autoAttackSection = Instance.new("Frame")
+autoAttackSection.Name = "AutoAttackSection"
+autoAttackSection.Size = UDim2.new(1, -20, 0, 80)
+autoAttackSection.LayoutOrder = 2
+autoAttackSection.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+autoAttackSection.BorderSizePixel = 0
+autoAttackSection.Parent = attackTab
+
+local autoAttackCorner = Instance.new("UICorner")
+autoAttackCorner.CornerRadius = UDim.new(0, 6)
+autoAttackCorner.Parent = autoAttackSection
+
+local autoAttackTitle = Instance.new("TextLabel")
+autoAttackTitle.Name = "AutoAttackTitle"
+autoAttackTitle.Size = UDim2.new(1, -10, 0, 25)
+autoAttackTitle.Position = UDim2.new(0, 5, 0, 5)
+autoAttackTitle.BackgroundTransparency = 1
+autoAttackTitle.Text = "AUTO ATTACK"
+autoAttackTitle.TextColor3 = Color3.fromRGB(255, 100, 100)
+autoAttackTitle.TextScaled = true
+autoAttackTitle.Font = Enum.Font.GothamBold
+autoAttackTitle.Parent = autoAttackSection
+
+local startAutoAttack = Instance.new("TextButton")
+startAutoAttack.Name = "StartAutoAttack"
+startAutoAttack.Size = UDim2.new(0.45, 0, 0, 30)
+startAutoAttack.Position = UDim2.new(0.025, 0, 0, 35)
+startAutoAttack.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+startAutoAttack.BorderSizePixel = 0
+startAutoAttack.Text = "START AUTO"
+startAutoAttack.TextColor3 = Color3.fromRGB(255, 255, 255)
+startAutoAttack.TextScaled = true
+startAutoAttack.Font = Enum.Font.GothamBold
+startAutoAttack.Parent = autoAttackSection
+
+local stopAutoAttack = Instance.new("TextButton")
+stopAutoAttack.Name = "StopAutoAttack"
+stopAutoAttack.Size = UDim2.new(0.45, 0, 0, 30)
+stopAutoAttack.Position = UDim2.new(0.525, 0, 0, 35)
+stopAutoAttack.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+stopAutoAttack.BorderSizePixel = 0
+stopAutoAttack.Text = "STOP AUTO"
+stopAutoAttack.TextColor3 = Color3.fromRGB(255, 255, 255)
+stopAutoAttack.TextScaled = true
+stopAutoAttack.Font = Enum.Font.GothamBold
+stopAutoAttack.Parent = autoAttackSection
+
+local autoAttackCorner = Instance.new("UICorner")
+autoAttackCorner.CornerRadius = UDim.new(0, 4)
+autoAttackCorner.Parent = startAutoAttack
+autoAttackCorner:Clone().Parent = stopAutoAttack
+
+-- Create territory buttons for attack
+for i, territory in ipairs(territories) do
+    createTerritoryButton(attackTab, territory, "Attack").LayoutOrder = i + 2
+end
+
+-- Setup Upgrade Tab
+local upgradeTab = tabFrames["Upgrade"]
+upgradeTab.CanvasSize = UDim2.new(0, 0, 0, #territories * 45 + 100)
+
+local upgradeSearch = createSearchBox(upgradeTab, "Search territories...", 1)
+
+-- Auto upgrade section
+local autoUpgradeSection = Instance.new("Frame")
+autoUpgradeSection.Name = "AutoUpgradeSection"
+autoUpgradeSection.Size = UDim2.new(1, -20, 0, 60)
+autoUpgradeSection.LayoutOrder = 2
+autoUpgradeSection.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+autoUpgradeSection.BorderSizePixel = 0
+autoUpgradeSection.Parent = upgradeTab
+
+local autoUpgradeCorner = Instance.new("UICorner")
+autoUpgradeCorner.CornerRadius = UDim.new(0, 6)
+autoUpgradeCorner.Parent = autoUpgradeSection
+
+local upgradeAllButton = Instance.new("TextButton")
+upgradeAllButton.Name = "UpgradeAllButton"
+upgradeAllButton.Size = UDim2.new(1, -40, 0, 40)
+upgradeAllButton.Position = UDim2.new(0, 20, 0, 10)
+upgradeAllButton.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+upgradeAllButton.BorderSizePixel = 0
+upgradeAllButton.Text = "UPGRADE ALL TERRITORIES"
+upgradeAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+upgradeAllButton.TextScaled = true
+upgradeAllButton.Font = Enum.Font.GothamBold
+upgradeAllButton.Parent = autoUpgradeSection
+
+local upgradeCorner = Instance.new("UICorner")
+upgradeCorner.CornerRadius = UDim.new(0, 4)
+upgradeCorner.Parent = upgradeAllButton
+
+-- Create territory buttons for upgrade
+for i, territory in ipairs(territories) do
+    createTerritoryButton(upgradeTab, territory, "Upgrade").LayoutOrder = i + 2
+end
+
+-- Setup Defenders Tab
+local defendersTab = tabFrames["Defenders"]
+defendersTab.CanvasSize = UDim2.new(0, 0, 0, 800)
+
+local defendersSearch = createSearchBox(defendersTab, "Search territories...", 1)
+
+-- Territory selection for defenders
+local territorySelection = Instance.new("TextLabel")
+territorySelection.Name = "TerritorySelection"
+territorySelection.Size = UDim2.new(1, -20, 0, 30)
+territorySelection.LayoutOrder = 2
+territorySelection.BackgroundTransparency = 1
+territorySelection.Text = "Select Territory: None"
+territorySelection.TextColor3 = Color3.fromRGB(255, 255, 255)
+territorySelection.TextScaled = true
+territorySelection.Font = Enum.Font.GothamBold
+territorySelection.Parent = defendersTab
+
+local selectedTerritoryForDefenders = nil
+
+-- Create territory selection buttons
+local territoriesFrame = Instance.new("Frame")
+territoriesFrame.Name = "TerritoriesFrame"
+territoriesFrame.Size = UDim2.new(1, -20, 0, 200)
+territoriesFrame.LayoutOrder = 3
+territoriesFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+territoriesFrame.BorderSizePixel = 0
+territoriesFrame.Parent = defendersTab
+
+local territoriesCorner = Instance.new("UICorner")
+territoriesCorner.CornerRadius = UDim.new(0, 6)
+territoriesCorner.Parent = territoriesFrame
+
+local territoriesScroll = Instance.new("ScrollingFrame")
+territoriesScroll.Name = "TerritoriesScroll"
+territoriesScroll.Size = UDim2.new(1, -10, 1, -10)
+territoriesScroll.Position = UDim2.new(0, 5, 0, 5)
+territoriesScroll.BackgroundTransparency = 1
+territoriesScroll.BorderSizePixel = 0
+territoriesScroll.ScrollBarThickness = 6
+territoriesScroll.Parent = territoriesFrame
+
+local territoriesLayout = Instance.new("UIListLayout")
+territoriesLayout.Padding = UDim.new(0, 5)
+territoriesLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+territoriesLayout.SortOrder = Enum.SortOrder.LayoutOrder
+territoriesLayout.Parent = territoriesScroll
+
+-- Create defender buttons container
+local defendersContainer = Instance.new("Frame")
+defendersContainer.Name = "DefendersContainer"
+defendersContainer.Size = UDim2.new(1, -20, 0, #defenders * 60 + 20)
+defendersContainer.LayoutOrder = 4
+defendersContainer.BackgroundTransparency = 1
+defendersContainer.Visible = false
+defendersContainer.Parent = defendersTab
+
+local defendersLayout = Instance.new("UIListLayout")
+defendersLayout.Padding = UDim.new(0, 10)
+defendersLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+defendersLayout.SortOrder = Enum.SortOrder.LayoutOrder
+defendersLayout.Parent = defendersContainer
+
+-- Create territory selection buttons
+for i, territory in ipairs(territories) do
+    local button = Instance.new("TextButton")
+    button.Name = territory
+    button.Size = UDim2.new(0.9, 0, 0, 30)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.BorderSizePixel = 0
+    button.Text = territory
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.Gotham
+    button.LayoutOrder = i
+    button.Parent = territoriesScroll
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 4)
+    buttonCorner.Parent = button
+    
+    button.MouseButton1Click:Connect(function()
+        selectedTerritoryForDefenders = territory
+        territorySelection.Text = "Select Territory: " .. territory
+        defendersContainer.Visible = true
+        
+        -- Clear existing defender buttons
+        for _, child in ipairs(defendersContainer:GetChildren()) do
+            if child:IsA("Frame") then
+                child:Destroy()
+            end
+        end
+        
+        -- Create defender buttons for selected territory
+        for i, defender in ipairs(defenders) do
+            createDefenderButton(defendersContainer, defender, territory).LayoutOrder = i
+        end
+    end)
+end
+
+territoriesScroll.CanvasSize = UDim2.new(0, 0, 0, #territories * 35)
+
+-- Auto attack functionality
+local function startAutoAttack()
+    if autoAttackConnection then
+        autoAttackConnection:Disconnect()
+    end
+    
+    autoAttackEnabled = true
+    startAutoAttack.BackgroundColor3 = Color3.fromRGB(30, 150, 80)
+    stopAutoAttack.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    
+    autoAttackConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        for territory, selected in pairs(selectedTerritories) do
+            if selected then
+                attackTerritory(territory)
+                wait(5) -- 5 second delay between attacks
+            end
+        end
+    end)
+end
+
+local function stopAutoAttack()
+    if autoAttackConnection then
+        autoAttackConnection:Disconnect()
+        autoAttackConnection = nil
+    end
+    
+    autoAttackEnabled = false
+    startAutoAttack.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+    stopAutoAttack.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+end
+
+startAutoAttack.MouseButton1Click:Connect(startAutoAttack)
+stopAutoAttack.MouseButton1Click:Connect(stopAutoAttack)
+
+-- Upgrade all functionality (FIXED: Actually upgrades all territories)
+upgradeAllButton.MouseButton1Click:Connect(function()
+    for _, territory in ipairs(territories) do
+        upgradeTerritory(territory)
+        wait(0.1) -- Small delay to prevent spamming
+    end
+end)
+
+-- Search functionality (FIXED: Now actually works)
+local function setupSearch(searchBox, parent)
+    searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local searchText = searchBox.Text:lower()
+        for _, child in ipairs(parent:GetChildren()) do
+            if child:IsA("Frame") and child:FindFirstChild("TerritoryButton") then
+                local territoryName = child.TerritoryButton.Text:lower()
+                if searchText == "" or territoryName:find(searchText) then
+                    child.Visible = true
+                else
+                    child.Visible = false
+                end
+            end
+        end
+    end)
+end
+
+setupSearch(attackSearch, attackTab)
+setupSearch(upgradeSearch, upgradeTab)
+setupSearch(defendersSearch, territoriesScroll)
+
+-- Cleanup
+player.AncestryChanged:Connect(function()
+    if not player:IsDescendantOf(game) then
+        stopAutoAttack()
+    end
+end)
